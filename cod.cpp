@@ -14,19 +14,26 @@ const int LANES[TOTAL_LANES] = {0, 160, 320};
 
 // Politist
 double height_police = 0.0; // oy politist
-int directie = 0;           // -1 jos, 1 sus, 0 pe loc
+enum direction
+{
+    JOS = -1,
+    SUS = 1,
+    LOC = 0
+};
+direction directie = LOC; // directia deplasarii politistului, initial sta pe loc
 
-// Persoane
+// Persoane / Infractori
 double height_people = LANES[rand() % 3]; // folosit ca si locatie oy pentru persoane
 double location_people = 1200;
 
 // Viteze - pe device-uri performante recomand police = 0.15, people = 0.05, raise_speed=0.05 ?
 const double police_speed = 30.0;
 double people_speed = 10.15;
-const double raise_speed = 5;
+const double raise_speed = 3;
 
 int score = 0;
 int prag_puncte = 1000;
+double progres = 0.0;
 
 void init(void)
 {
@@ -39,14 +46,19 @@ void init(void)
     glOrtho(left_m, right_m, bottom_m, top_m, -1.0, 1.0);
 }
 
-void RenderString(float x, float y, void *font, const unsigned char *string)
+void RenderString(float x, float y, void *font, const unsigned char *string, int color = 0)
 {
-    glColor3f(0.0f, 0.0f, 0.0f);
+    if (color == 1)
+        glColor3f(1.0f, 1.0f, 1.0f);
+    else
+        glColor3f(0.0f, 0.0f, 0.0f);
     glRasterPos2f(x, y);
     glutBitmapString(font, string);
 }
 void startgame(void)
 {
+    if (isGameRunning && !isGameOver)
+        progres += 0.2;
     if (location_people < -45)
     {
         if (isGameOver == false) // Sa nu se randeze in consola de mai multe ori
@@ -77,6 +89,105 @@ void startgame(void)
     }
 }
 
+void drawPoliceMan()
+{
+    // Figura 30x60
+    /*
+        (-15, 30)   (15, 30)
+
+        (-15, -30)  (15, -30)
+    */
+    int h = 30;  // height
+    int l = -30; // lower height
+
+    glBegin(GL_POLYGON);
+    glColor3f(0.0, 0.0, 1.0);
+    glVertex2i(-15, h);
+    glVertex2i(-15, h - 10);
+    glVertex2i(15, h - 10);
+    glVertex2i(15, h);
+    glEnd();
+
+    // Head
+    glBegin(GL_POLYGON);
+    glColor3f(0.91, 0.745, 0.675);
+    glVertex2i(-15, h - 10);
+    glVertex2i(-15, h - 10 - 20); // baza - modificare
+    glVertex2i(15, h - 10 - 20);
+    glVertex2i(15, h - 10);
+    glEnd();
+
+    // Neck
+    glBegin(GL_POLYGON);
+    glColor3f(0.81, 0.645, 0.575);
+    glVertex2i(-8, h - 30);
+    glVertex2i(-8, h - 30 - 2);
+    glVertex2i(8, h - 30 - 2);
+    glVertex2i(8, h - 30);
+    glEnd();
+
+    // Fata
+    // Ochi drept
+    glBegin(GL_QUADS);
+    glColor3f(0.0, 0.0, 0.0);
+    glVertex2i(8, h - 15);
+    glVertex2i(8, h - 15 - 5);
+    glVertex2i(13, h - 15 - 5);
+    glVertex2i(13, h - 15);
+
+    // Ochi stang
+    glVertex2i(0, h - 15);
+    glVertex2i(0, h - 15 - 5);
+    glVertex2i(-5, h - 15 - 5);
+    glVertex2i(-5, h - 15);
+
+    // Gura
+    glVertex2i(0, h - 25);
+    glVertex2i(0, h - 25 - 2);
+    glVertex2i(10, h - 25 - 2);
+    glVertex2i(10, h - 25);
+    glEnd();
+
+    // Brate
+    glBegin(GL_QUADS);
+    glColor3f(0.81, 0.645, 0.575);
+    glVertex2i(-15, h - 32);
+    glVertex2i(-15, h - 32 - 20);
+    glVertex2i(-10, h - 32 - 20);
+    glVertex2i(-10, h - 32);
+
+    glVertex2i(10, h - 32);
+    glVertex2i(10, h - 32 - 20);
+    glVertex2i(15, h - 32 - 20);
+    glVertex2i(15, h - 32);
+    glEnd();
+
+    // Corp
+    glBegin(GL_POLYGON);
+    glColor3f(0.0, 0.0, 0.7);
+    glVertex2i(-10, h - 32);
+    glVertex2i(-10, l + 3);
+    glVertex2i(10, l + 3);
+    glVertex2i(10, h - 32);
+    glEnd();
+    glRecti(-15, h - 32, 15, h - 40);
+
+    // Picioare
+    glBegin(GL_QUADS);
+    glColor3f(0.0, 0.0, 0.0);
+    glVertex2i(-10, l + 3);
+    glVertex2i(-10, l - 4);
+    glVertex2i(-5, l - 4);
+    glVertex2i(-5, l + 3);
+
+    glVertex2i(5, l + 3);
+    glVertex2i(5, l - 4);
+    glVertex2i(10, l - 4);
+    glVertex2i(10, l + 3);
+
+    glEnd();
+}
+
 void drawScene(void)
 {
     if (!isGamePaused)
@@ -103,12 +214,13 @@ void drawScene(void)
         glVertex2i(700, 460);  // Dreapta sus
         glVertex2i(-100, 460); // Stanga sus
         glEnd();
-        if (isGameOver)
-            RenderString(250.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)"Ai pierdut!");
-        else
-            RenderString(150.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)"Nu lasa ciorile sa treaca!");
 
-        RenderString(400.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)("Scor: " + to_string(score / 100)).c_str());
+        if (isGameOver)
+            RenderString(250.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)"Ai pierdut!", 1);
+        else
+            RenderString(150.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)"Nu lasa infractorii sa treaca!", 1);
+
+        RenderString(500.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)("Scor: " + to_string(score / 100)).c_str(), 1);
 
         // Delimitare sosea
         glLineWidth(3);
@@ -118,29 +230,35 @@ void drawScene(void)
         glBegin(GL_LINES);
         glVertex2i(-100, -80);
         glVertex2i(1500, -80);
-        glEnd();
 
         // Delimitam soseaua de iarba partea de sus
-        glBegin(GL_LINES);
         glVertex2i(-100, 400);
         glVertex2i(1500, 400);
+
+        // Linie discontinua 1
+        for (int i = -125; i < 700; i += 100)
+        {
+            glVertex2i(i, 240);
+            glVertex2i(i + 50, 240);
+        }
+        // Linie discontinua 2
+        for (int i = -125; i < 700; i += 100)
+        {
+            glVertex2i(i, 80);
+            glVertex2i(i + 50, 80);
+        }
         glEnd();
 
+        glLineWidth(2.0);
         glBegin(GL_LINES);
-        glVertex2i(-100, 80);
-        glVertex2i(1500, 80);
-        glEnd();
-
-        glBegin(GL_LINES);
-        glVertex2i(-100, 240);
-        glVertex2i(1500, 240);
+        glVertex2i(0, -125);
+        glVertex2i(600, -125);
         glEnd();
 
         // desenam politistul
         glPushMatrix();
         glTranslated(0.0, height_police, 0.0);
-        glColor3f(0.169, 0.271, 0.439);
-        glRecti(-15, -15, 15, 15);
+        drawPoliceMan();
         glPopMatrix();
 
         if (isGameOver == true)
@@ -149,48 +267,54 @@ void drawScene(void)
         }
 
         // Movement politist
-        if (directie == 1)
+        if (directie == SUS)
         {
             if (height_police < 160 && height_police + police_speed >= 160)
             {
                 height_police = 160;
-                directie = 0;
+                // directie = 0;
+                directie = LOC;
             }
             else if (height_police < 320 && height_police + police_speed >= 320)
             {
                 height_police = 320;
-                directie = 0;
+                directie = LOC;
             }
             else
                 height_police += police_speed;
         }
-        else if (directie == -1)
+        else if (directie == JOS)
         {
             if (height_police > 160 && height_police - police_speed <= 160)
             {
                 height_police = 160;
-                directie = 0;
+                directie = LOC;
             }
             else if (height_police > 0 && height_police - police_speed <= 0)
             {
                 height_police = 0;
-                directie = 0;
+                directie = LOC;
             }
             else
                 height_police -= police_speed;
         }
         else
         {
-            directie = 0;
+            directie = LOC;
         }
 
         // desenam persoana adversa
         glPushMatrix();
         glTranslated(location_people, height_people, 0.0);
-
         glColor3f(0.1, 0.1, 0.1); // negru
         glRecti(-45, -15, -15, 15);
+        glPopMatrix();
 
+        // progresul politistului
+        glPushMatrix();
+        glTranslated(progres, -120.0, 0.0);
+        glColor3f(0.0, 0.0, 1.0);
+        glRecti(0, 0, 40, 20);
         glPopMatrix();
 
         startgame(); // logica coliziuni
@@ -225,7 +349,7 @@ void miscasus(void)
     {
         if (height_police < 320)
         {
-            directie = 1;
+            directie = SUS;
         }
 
         glutPostRedisplay();
@@ -238,7 +362,7 @@ void miscajos(void)
     {
         if (height_police > 0)
         {
-            directie = -1;
+            directie = JOS;
         }
 
         glutPostRedisplay();
@@ -265,16 +389,20 @@ void keyboard_callback(unsigned char key, int x, int y)
     {
     case ' ': // Space key
         isGamePaused = !isGamePaused;
+        isGameRunning = !isGameRunning;
         break;
     case 'r':
         isGameOver = false;
         isGamePaused = false;
+        isGameRunning = true;
+
         height_police = 0.0;
         height_people = LANES[rand() % 3];
         location_people = 1200.0;
         people_speed = 10.15;
         score = 0;
         prag_puncte = 1000;
+        progres = 0.0;
 
         break;
 
@@ -289,7 +417,7 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(800, 600);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("Prinde ciorile - mini game");
+    glutCreateWindow("Prinde infractorii - mini game");
     init();
     glutDisplayFunc(drawScene);
     glutReshapeFunc(reshape);
