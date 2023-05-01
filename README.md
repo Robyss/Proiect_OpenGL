@@ -1,6 +1,6 @@
 # Proiect_OpenGL
 
-Proiect 1 OpenGL. Prinde gâștele.
+Proiect 1 OpenGL. Prinde infractorii - mini game.
 
 ### Controale:
 
