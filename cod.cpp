@@ -1,6 +1,7 @@
 #define GL_SILENCE_DEPRECATION
 #include <iostream>
 #include <GL/freeglut.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -11,6 +12,7 @@ bool isGamePaused = false;
 // Strada
 const int TOTAL_LANES = 3;
 const int LANES[TOTAL_LANES] = {0, 160, 320};
+int current_lane = 0;
 
 // Politist
 double height_police = 0.0; // oy politist
@@ -33,7 +35,8 @@ const double raise_speed = 3;
 
 int score = 0;
 int prag_puncte = 1000;
-double progres = 0.0;
+double progress = 0.0;
+const double finish_progress = 560.0;
 
 void init(void)
 {
@@ -57,8 +60,8 @@ void RenderString(float x, float y, void *font, const unsigned char *string, int
 }
 void startgame(void)
 {
-    if (isGameRunning && !isGameOver)
-        progres += 0.2;
+    if (isGameRunning && !isGameOver && progress < 560)
+        progress += 1.2;
     if (location_people < -45)
     {
         if (isGameOver == false) // Sa nu se randeze in consola de mai multe ori
@@ -268,40 +271,45 @@ void drawScene(void)
 
         // Movement politist
         if (directie == SUS)
-        {
-            if (height_police < 160 && height_police + police_speed >= 160)
-            {
-                height_police = 160;
-                // directie = 0;
-                directie = LOC;
-            }
-            else if (height_police < 320 && height_police + police_speed >= 320)
-            {
-                height_police = 320;
-                directie = LOC;
-            }
-            else
-                height_police += police_speed;
-        }
+            height_police = min(height_police + police_speed, current_lane * 160.0);
         else if (directie == JOS)
-        {
-            if (height_police > 160 && height_police - police_speed <= 160)
-            {
-                height_police = 160;
-                directie = LOC;
-            }
-            else if (height_police > 0 && height_police - police_speed <= 0)
-            {
-                height_police = 0;
-                directie = LOC;
-            }
-            else
-                height_police -= police_speed;
-        }
-        else
-        {
-            directie = LOC;
-        }
+            height_police = max(height_police - police_speed, current_lane * 160.0);
+
+        // if (directie == SUS)
+        // {
+        //     if (height_police < 160 && height_police + police_speed >= 160)
+        //     {
+        //         height_police = 160;
+        //         // directie = 0;
+        //         directie = LOC;
+        //     }
+        //     else if (height_police < 320 && height_police + police_speed >= 320)
+        //     {
+        //         height_police = 320;
+        //         directie = LOC;
+        //     }
+        //     else
+        //         height_police += police_speed;
+        // }
+        // else if (directie == JOS)
+        // {
+        //     if (height_police > 160 && height_police - police_speed <= 160)
+        //     {
+        //         height_police = 160;
+        //         directie = LOC;
+        //     }
+        //     else if (height_police > 0 && height_police - police_speed <= 0)
+        //     {
+        //         height_police = 0;
+        //         directie = LOC;
+        //     }
+        //     else
+        //         height_police -= police_speed;
+        // }
+        // else
+        // {
+        //     directie = LOC;
+        // }
 
         // desenam persoana adversa
         glPushMatrix();
@@ -312,7 +320,7 @@ void drawScene(void)
 
         // progresul politistului
         glPushMatrix();
-        glTranslated(progres, -120.0, 0.0);
+        glTranslated(progress, -120.0, 0.0);
         glColor3f(0.0, 0.0, 1.0);
         glRecti(0, 0, 40, 20);
         glPopMatrix();
@@ -350,6 +358,7 @@ void miscasus(void)
         if (height_police < 320)
         {
             directie = SUS;
+            current_lane = min(current_lane + 1, TOTAL_LANES - 1);
         }
 
         glutPostRedisplay();
@@ -363,6 +372,7 @@ void miscajos(void)
         if (height_police > 0)
         {
             directie = JOS;
+            current_lane = max(current_lane - 1, 0);
         }
 
         glutPostRedisplay();
@@ -397,12 +407,13 @@ void keyboard_callback(unsigned char key, int x, int y)
         isGameRunning = true;
 
         height_police = 0.0;
+        directie = LOC;
         height_people = LANES[rand() % 3];
         location_people = 1200.0;
         people_speed = 10.15;
         score = 0;
         prag_puncte = 1000;
-        progres = 0.0;
+        progress = 0.0;
 
         break;
 
