@@ -1,8 +1,7 @@
 #define GL_SILENCE_DEPRECATION
 #include <iostream>
 #include <GL/freeglut.h>
-
-#include <cmath>
+#include <string> // pentru windows
 
 using namespace std;
 
@@ -30,7 +29,7 @@ direction directie = LOC; // directia deplasarii politistului, initial sta pe lo
 double height_people = LANES[rand() % 3]; // folosit ca si locatie oy pentru persoane
 double location_people = 1200;
 
-// Viteze - pe device-uri performante recomand police = 0.15, people = 0.05, raise_speed=0.05 ?
+// Viteze - pe device-uri performante recomand police = 0.15, people = 0.05, raise_speed=0.05
 const double police_speed = 30.0;
 double people_speed = 10.15;
 const double raise_speed = 4;
@@ -62,6 +61,7 @@ void RenderString(float x, float y, void *font, const unsigned char *string, int
     glRasterPos2f(x, y);
     glutBitmapString(font, string);
 }
+
 void startgame(void)
 {
     if (isGameRunning && !isGameOver && progress < 560)
