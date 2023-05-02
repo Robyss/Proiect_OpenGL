@@ -1,13 +1,15 @@
 #define GL_SILENCE_DEPRECATION
 #include <iostream>
 #include <GL/freeglut.h>
-#include <algorithm>
+
+#include <cmath>
 
 using namespace std;
 
 bool isGameOver = false;
 bool isGameRunning = true;
 bool isGamePaused = false;
+bool isGameWon = false;
 
 // Strada
 const int TOTAL_LANES = 3;
@@ -31,12 +33,14 @@ double location_people = 1200;
 // Viteze - pe device-uri performante recomand police = 0.15, people = 0.05, raise_speed=0.05 ?
 const double police_speed = 30.0;
 double people_speed = 10.15;
-const double raise_speed = 3;
+const double raise_speed = 4;
 
 int score = 0;
 int prag_puncte = 1000;
 double progress = 0.0;
 const double finish_progress = 560.0;
+
+double reinforcement = -100.0;
 
 void init(void)
 {
@@ -61,7 +65,13 @@ void RenderString(float x, float y, void *font, const unsigned char *string, int
 void startgame(void)
 {
     if (isGameRunning && !isGameOver && progress < 560)
-        progress += 1.2;
+        progress += 0.2;
+
+    if (progress >= 560)
+    {
+        isGameRunning = false;
+    }
+
     if (location_people < -45)
     {
         if (isGameOver == false) // Sa nu se randeze in consola de mai multe ori
@@ -72,6 +82,12 @@ void startgame(void)
     }
     else
     {
+        if (!isGameRunning && location_people == 800)
+        {
+            isGameWon = true;
+            return;
+        }
+
         location_people -= people_speed;
         // cout << location_people << '\n';
 
@@ -82,7 +98,7 @@ void startgame(void)
             cout << "Score:  " << score << endl;
             location_people = 800;
         }
-        if (score >= prag_puncte && prag_puncte <= 3000)
+        if (score >= prag_puncte && prag_puncte <= 3500)
         {
             people_speed += raise_speed;
             prag_puncte += 500;
@@ -130,26 +146,49 @@ void drawPoliceMan()
     glEnd();
 
     // Fata
-    // Ochi drept
-    glBegin(GL_QUADS);
-    glColor3f(0.0, 0.0, 0.0);
-    glVertex2i(8, h - 15);
-    glVertex2i(8, h - 15 - 5);
-    glVertex2i(13, h - 15 - 5);
-    glVertex2i(13, h - 15);
+    if (isGameOver)
+    {
+        glBegin(GL_LINES);
+        glColor3f(0.0, 0.0, 0.0);
+        glVertex2i(8, h - 15);
+        glVertex2i(13, h - 15 - 5);
+        glVertex2i(8, h - 15 - 5);
+        glVertex2i(13, h - 15);
 
-    // Ochi stang
-    glVertex2i(0, h - 15);
-    glVertex2i(0, h - 15 - 5);
-    glVertex2i(-5, h - 15 - 5);
-    glVertex2i(-5, h - 15);
+        glVertex2i(0, h - 15);
+        glVertex2i(-5, h - 15 - 5);
+        glVertex2i(0, h - 15 - 5);
+        glVertex2i(-5, h - 15);
+        glEnd();
+    }
+    else
+    {
+        // Ochi drept
+        glBegin(GL_QUADS);
+        glColor3f(0.0, 0.0, 0.0);
+        glVertex2i(8, h - 15);
+        glVertex2i(8, h - 15 - 5);
+        glVertex2i(13, h - 15 - 5);
+        glVertex2i(13, h - 15);
+
+        // Ochi stang
+        glVertex2i(0, h - 15);
+        glVertex2i(0, h - 15 - 5);
+        glVertex2i(-5, h - 15 - 5);
+        glVertex2i(-5, h - 15);
+        glEnd();
+    }
 
     // Gura
-    glVertex2i(0, h - 25);
-    glVertex2i(0, h - 25 - 2);
-    glVertex2i(10, h - 25 - 2);
-    glVertex2i(10, h - 25);
-    glEnd();
+    if (!isGameOver)
+    {
+        glBegin(GL_QUADS);
+        glVertex2i(0, h - 25);
+        glVertex2i(0, h - 25 - 2);
+        glVertex2i(10, h - 25 - 2);
+        glVertex2i(10, h - 25);
+        glEnd();
+    }
 
     // Brate
     glBegin(GL_QUADS);
@@ -191,13 +230,163 @@ void drawPoliceMan()
     glEnd();
 }
 
+void drawInfractor()
+{
+    /* Figura
+
+    (-45, 15)  (-15, 15)
+
+    (-45, -15) (-15, -15)
+
+    */
+
+    int h = 30;  // height
+    int l = -30; // lower height
+
+    // Caciula
+    glBegin(GL_POLYGON);
+    glColor3f(0.1, 0.1, 0.1);
+    glVertex2i(-15, h);
+    glVertex2i(-15, h - 10);
+    glVertex2i(15, h - 10);
+    glVertex2i(15, h);
+    glEnd();
+
+    glBegin(GL_TRIANGLES);
+    glColor3f(0.561, 0.58, 0.569);
+    glVertex2i(-15, h);
+    glVertex2i(-15, h - 5);
+    // glVertex2i(-10, h - 5);
+    glVertex2i(-8, h);
+
+    glVertex2i(8, h);
+    // glVertex2i(10, h - 5);
+    glVertex2i(15, h - 5);
+    glVertex2i(15, h);
+
+    glEnd();
+    // Head
+    glBegin(GL_POLYGON);
+    glColor3f(0.435, 0.31, 0.114);
+    glVertex2i(-15, h - 10);
+    glVertex2i(-15, h - 10 - 20); // baza - modificare
+    glVertex2i(15, h - 10 - 20);
+    glVertex2i(15, h - 10);
+    glEnd();
+
+    // Neck
+    glBegin(GL_POLYGON);
+    glColor3f(0.335, 0.21, 0.014);
+    glVertex2i(-8, h - 30);
+    glVertex2i(-8, h - 30 - 2);
+    glVertex2i(8, h - 30 - 2);
+    glVertex2i(8, h - 30);
+    glEnd();
+
+    // Fata
+
+    // Ochi drept
+    glBegin(GL_QUADS);
+    glColor3f(0.0, 0.0, 0.0);
+    glVertex2i(0, h - 15);
+    glVertex2i(0, h - 15 - 5);
+    glVertex2i(5, h - 15 - 5);
+    glVertex2i(5, h - 15);
+
+    // Ochi stang
+    glVertex2i(-13, h - 15);
+    glVertex2i(-13, h - 15 - 5);
+    glVertex2i(-8, h - 15 - 5);
+    glVertex2i(-8, h - 15);
+    glEnd();
+
+    // Gura
+
+    glBegin(GL_QUADS);
+    glVertex2i(-10, h - 25);
+    glVertex2i(-10, h - 25 - 2);
+    glVertex2i(0, h - 25 - 2);
+    glVertex2i(0, h - 25);
+    glEnd();
+
+    // Brate
+    if (((int)location_people / 100) % 2)
+    {
+        glBegin(GL_QUADS);
+        glColor3f(0.335, 0.21, 0.014);
+        glVertex2i(-15, h - 32);
+        glVertex2i(-15, h - 32 - 17);
+        glVertex2i(-10, h - 32 - 17);
+        glVertex2i(-10, h - 32);
+
+        glVertex2i(10, h - 32);
+        glVertex2i(10, h - 32 - 17);
+        glVertex2i(15, h - 32 - 17);
+        glVertex2i(15, h - 32);
+        glEnd();
+    }
+    else
+    {
+        glBegin(GL_QUADS);
+        glColor3f(0.335, 0.21, 0.014);
+        glVertex2i(-15, h - 32);
+        glVertex2i(-15, h - 32 - 20);
+        glVertex2i(-10, h - 32 - 20);
+        glVertex2i(-10, h - 32);
+
+        glVertex2i(10, h - 32);
+        glVertex2i(10, h - 32 - 20);
+        glVertex2i(15, h - 32 - 20);
+        glVertex2i(15, h - 32);
+        glEnd();
+    }
+
+    // Corp
+    glBegin(GL_POLYGON);
+    glColor3f(0.13, 0.13, 0.13);
+    glVertex2i(-10, h - 32);
+    glVertex2i(-10, l + 3);
+    glVertex2i(10, l + 3);
+    glVertex2i(10, h - 32);
+    glEnd();
+
+    // Picioare
+
+    glBegin(GL_QUADS);
+    glColor3f(0.335, 0.21, 0.014);
+    if (((int)location_people / 100) % 2)
+    {
+        glVertex2i(15, l + 3);
+        glVertex2i(15, l - 2);
+        glVertex2i(5, l - 2);
+        glVertex2i(5, l + 3);
+
+        glVertex2i(-10, l + 3);
+        glVertex2i(-17, l - 4);
+        glVertex2i(-10, l - 4);
+        glVertex2i(-3, l + 3);
+    }
+    else
+    {
+        glVertex2i(-10, l + 3);
+        glVertex2i(-10, l - 4);
+        glVertex2i(-5, l - 4);
+        glVertex2i(-5, l + 3);
+
+        glVertex2i(5, l + 3);
+        glVertex2i(5, l - 4);
+        glVertex2i(10, l - 4);
+        glVertex2i(10, l + 3);
+    }
+
+    glEnd();
+    glutPostRedisplay();
+}
+
 void drawScene(void)
 {
     if (!isGamePaused)
     {
-        // #8F9491 culoare strada
-        // #2B4570 culoare politist
-
         glClear(GL_COLOR_BUFFER_BIT);
 
         glColor3f(0.42, 0.212, 0.137); // culoare cladiri
@@ -220,6 +409,8 @@ void drawScene(void)
 
         if (isGameOver)
             RenderString(250.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)"Ai pierdut!", 1);
+        else if (isGameWon)
+            RenderString(200.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)"Felicitari! Ai invins!", 1);
         else
             RenderString(150.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)"Nu lasa infractorii sa treaca!", 1);
 
@@ -258,65 +449,28 @@ void drawScene(void)
         glVertex2i(600, -125);
         glEnd();
 
+        // desenam infractorii
+        glPushMatrix();
+        glTranslated(location_people - 30, height_people, 0.0);
+        drawInfractor();
+        glPopMatrix();
+
         // desenam politistul
         glPushMatrix();
         glTranslated(0.0, height_police, 0.0);
         drawPoliceMan();
         glPopMatrix();
 
-        if (isGameOver == true)
-        {
+        if (isGameOver)
             RenderString(250.0f, 200.0f, GLUT_BITMAP_8_BY_13, (const unsigned char *)"GAME OVER");
-        }
+        else if (isGameWon)
+            RenderString(250.0f, 200.0f, GLUT_BITMAP_8_BY_13, (const unsigned char *)"YOU WIN!");
 
         // Movement politist
         if (directie == SUS)
             height_police = min(height_police + police_speed, current_lane * 160.0);
         else if (directie == JOS)
             height_police = max(height_police - police_speed, current_lane * 160.0);
-
-        // if (directie == SUS)
-        // {
-        //     if (height_police < 160 && height_police + police_speed >= 160)
-        //     {
-        //         height_police = 160;
-        //         // directie = 0;
-        //         directie = LOC;
-        //     }
-        //     else if (height_police < 320 && height_police + police_speed >= 320)
-        //     {
-        //         height_police = 320;
-        //         directie = LOC;
-        //     }
-        //     else
-        //         height_police += police_speed;
-        // }
-        // else if (directie == JOS)
-        // {
-        //     if (height_police > 160 && height_police - police_speed <= 160)
-        //     {
-        //         height_police = 160;
-        //         directie = LOC;
-        //     }
-        //     else if (height_police > 0 && height_police - police_speed <= 0)
-        //     {
-        //         height_police = 0;
-        //         directie = LOC;
-        //     }
-        //     else
-        //         height_police -= police_speed;
-        // }
-        // else
-        // {
-        //     directie = LOC;
-        // }
-
-        // desenam persoana adversa
-        glPushMatrix();
-        glTranslated(location_people, height_people, 0.0);
-        glColor3f(0.1, 0.1, 0.1); // negru
-        glRecti(-45, -15, -15, 15);
-        glPopMatrix();
 
         // progresul politistului
         glPushMatrix();
@@ -325,7 +479,33 @@ void drawScene(void)
         glRecti(0, 0, 40, 20);
         glPopMatrix();
 
-        startgame(); // logica coliziuni
+        if (isGameWon)
+        {
+            reinforcement += 10;
+            if (current_lane != 0)
+            {
+                glPushMatrix();
+                glTranslated(min(reinforcement, 0.0), LANES[0], 0.0);
+                drawPoliceMan();
+                glPopMatrix();
+            }
+            if (current_lane != 1)
+            {
+                glPushMatrix();
+                glTranslated(min(reinforcement, 0.0), LANES[1], 0.0);
+                drawPoliceMan();
+                glPopMatrix();
+            }
+            if (current_lane != 2)
+            {
+                glPushMatrix();
+                glTranslated(min(reinforcement, 0.0), LANES[2], 0.0);
+                drawPoliceMan();
+                glPopMatrix();
+            }
+        }
+
+        startgame(); // logica coliziuni + event handler
         glutPostRedisplay();
         glutSwapBuffers();
         glFlush();
@@ -353,30 +533,23 @@ void reshape(int w, int h)
 
 void miscasus(void)
 {
-    if (isGameOver != true && isGamePaused != true)
-    {
-        if (height_police < 320)
-        {
-            directie = SUS;
-            current_lane = min(current_lane + 1, TOTAL_LANES - 1);
-        }
+    if (isGameOver || isGamePaused || isGameWon)
+        return;
+    directie = SUS;
+    current_lane = min(current_lane + 1, TOTAL_LANES - 1);
 
-        glutPostRedisplay();
-    }
+    glutPostRedisplay();
 }
 
 void miscajos(void)
 {
-    if (isGameOver != true && isGamePaused != true)
-    {
-        if (height_police > 0)
-        {
-            directie = JOS;
-            current_lane = max(current_lane - 1, 0);
-        }
+    if (isGameOver || isGamePaused || isGameWon)
+        return;
 
-        glutPostRedisplay();
-    }
+    directie = JOS;
+    current_lane = max(current_lane - 1, 0);
+
+    glutPostRedisplay();
 }
 
 void keyboard(int key, int x, int y)
@@ -398,22 +571,26 @@ void keyboard_callback(unsigned char key, int x, int y)
     switch (key)
     {
     case ' ': // Space key
+        if (isGameWon || isGameOver)
+            break;
         isGamePaused = !isGamePaused;
-        isGameRunning = !isGameRunning;
         break;
     case 'r':
         isGameOver = false;
         isGamePaused = false;
         isGameRunning = true;
+        isGameWon = false;
 
         height_police = 0.0;
         directie = LOC;
+        current_lane = 0;
         height_people = LANES[rand() % 3];
         location_people = 1200.0;
         people_speed = 10.15;
         score = 0;
         prag_puncte = 1000;
         progress = 0.0;
+        reinforcement = -100.0;
 
         break;
 
