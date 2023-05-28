@@ -13,8 +13,10 @@ float x = 0.0f, z = 5.0f;
 
 // Strada
 const int TOTAL_LANES = 3;
-const int LANES[] = { -10, 0, 10 };
+const int LANES[] = {-10, 0, 10};
 int current_lane = 1;
+
+int currentTime = 0;
 
 enum direction
 {
@@ -88,6 +90,15 @@ void renderScene(void)
               x + lx, 1.0f, z + lz,
               0.0f, 1.0f, 0.0f);
 
+    if (currentTime == 0)
+    {
+        glClearColor(0.52f, 0.87f, 0.92f, 0.0f);
+    }
+    else if (currentTime == 1)
+    {
+        glClearColor(0.0f, 0.05f, 0.29f, 0.1f);
+    }
+
     // Draw ground
     glColor3f(0.5f, 0.5f, 0.5f);
     glBegin(GL_QUADS);
@@ -132,11 +143,13 @@ void renderScene(void)
     float zEnd = 100.0f;
     float zIncrement = 5.0f;
 
-    for (float z = zStart; z <= zEnd; z += zIncrement) {
+    for (float z = zStart; z <= zEnd; z += zIncrement)
+    {
         glVertex3f(2.5f, y, z);
         glVertex3f(2.5f, y, z + 2.0f);
     }
-    for (float z = zStart; z <= zEnd; z += zIncrement) {
+    for (float z = zStart; z <= zEnd; z += zIncrement)
+    {
         glVertex3f(-2.5f, y, z);
         glVertex3f(-2.5f, y, z + 2.0f);
     }
@@ -146,18 +159,15 @@ void renderScene(void)
     // Disable line stippling
     glDisable(GL_LINE_STIPPLE);
 
-
-
-
-
-
     // drawSnowMan();
     // Movement politist
 
     // Movement politist
-    if (directie == STANGA) {
+    if (directie == STANGA)
+    {
 
-        if (x - police_speed < (current_lane - 1) * 5.0f) {
+        if (x - police_speed < (current_lane - 1) * 5.0f)
+        {
             directie = LOC;
             x = (current_lane - 1) * 5.0f;
         }
@@ -166,8 +176,10 @@ void renderScene(void)
             x -= police_speed;
         }
     }
-    else if (directie == DREAPTA) {
-        if (x + police_speed > (current_lane - 1) * 5.0f) {
+    else if (directie == DREAPTA)
+    {
+        if (x + police_speed > (current_lane - 1) * 5.0f)
+        {
             directie = LOC;
             x = (current_lane - 1) * 5.0f;
         }
@@ -176,7 +188,6 @@ void renderScene(void)
             x += police_speed;
         }
     }
-
 
     glutPostRedisplay();
     glutSwapBuffers();
@@ -188,21 +199,21 @@ void processNormalKeys(unsigned char key, int x, int y)
     float fraction = 0.1f;
     switch (key)
     {
-        case 'l':
-            angle -= 0.01f;
-            lx = sin(angle);
-            lz = -cos(angle);
-            break;
+    case 'l':
+        angle -= 0.01f;
+        lx = sin(angle);
+        lz = -cos(angle);
+        break;
 
-        case 'a':   // stanga
-            x -= police_speed;
-            break;
-        case 'd':
-            x += police_speed;
-            break;
-        case 27:    // escape key
-            exit(0);
-            break;
+    case 'a': // stanga
+        x -= police_speed;
+        break;
+    case 'd':
+        x += police_speed;
+        break;
+    case 27: // escape key
+        exit(0);
+        break;
     }
 }
 
@@ -226,29 +237,40 @@ void processSpecialKeys(int key, int xx, int yy)
 {
     switch (key)
     {
-        case GLUT_KEY_UP:
-            angle -= 0.01f;
-            lx = sin(angle);
-            lz = -cos(angle);
-            break;
-        case GLUT_KEY_DOWN:
-            angle += 0.01f;
-            lx = sin(angle);
-            lz = -cos(angle);
-            break;
-        case GLUT_KEY_LEFT:
-            moveLeft();
-            break;
-        case GLUT_KEY_RIGHT:
-            moveRight();
-            break;
+    case GLUT_KEY_UP:
+        angle -= 0.01f;
+        lx = sin(angle);
+        lz = -cos(angle);
+        break;
+    case GLUT_KEY_DOWN:
+        angle += 0.01f;
+        lx = sin(angle);
+        lz = -cos(angle);
+        break;
+    case GLUT_KEY_LEFT:
+        moveLeft();
+        break;
+    case GLUT_KEY_RIGHT:
+        moveRight();
+        break;
     }
     cout << "X: " << x << "  Z: " << z << "  Angle: " << angle << '\n';
     cout << current_lane << '\n';
-
 }
 
-int main(int argc, char** argv)
+void callback_Main(int key)
+{
+    if (key == 0)
+    {
+        exit(0);
+    }
+}
+void callback_Time(int key)
+{
+    currentTime = key;
+}
+
+int main(int argc, char **argv)
 {
     // init GLUT and create window
     glutInit(&argc, argv);
@@ -267,6 +289,19 @@ int main(int argc, char** argv)
     // OpenGL init
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
+
+    // Menu
+    int menuMain, menuTimeOfDay;
+
+    menuTimeOfDay = glutCreateMenu(callback_Time);
+    glutAddMenuEntry("Zi ", 0);
+    glutAddMenuEntry("Noapte ", 1);
+
+    menuMain = glutCreateMenu(callback_Main);
+
+    glutAddSubMenu("Zi/Noapte ", menuTimeOfDay);
+    glutAddMenuEntry("Iesi ", 0);
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
 
     // enter GLUT event processing cycle
     glutMainLoop();
