@@ -8,3 +8,5 @@ Proiect 1 OpenGL. Prinde infractorii - mini game.
 - Săgeată jos: jos
 - Space: Pauza
 - R: Reset
+
+### [Link Video](https://www.youtube.com/watch?v=UxeV0ysdONI&feature=youtu.be)
