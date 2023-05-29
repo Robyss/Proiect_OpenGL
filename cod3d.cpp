@@ -1,4 +1,3 @@
-
 #define GL_SILENCE_DEPRECATION
 #include <iostream>
 #include <GL/freeglut.h>
@@ -13,7 +12,7 @@ float x = 0.0f, z = 5.0f;
 
 // Strada
 const int TOTAL_LANES = 3;
-const int LANES[] = {-10, 0, 10};
+const float LANES[] = {-5.0f, 0.0f, 5.0f};
 int current_lane = 1;
 
 int currentTime = 0;
@@ -27,6 +26,11 @@ enum direction
 direction directie = LOC; // directia deplasarii politistului, initial sta pe loc
 
 const float police_speed = 0.3f;
+float people_speed = 0.2f;
+float people_position = -40.0f;
+float people_lane = LANES[rand() % TOTAL_LANES];
+
+bool isGameOver = false;
 
 void changeSize(int w, int h)
 {
@@ -52,21 +56,45 @@ void changeSize(int w, int h)
     glMatrixMode(GL_MODELVIEW);
 }
 
-void drawSnowMan()
+void game_logic()
 {
-    glColor3f(1.0f, 1.0f, 1.0f);
+    if (isGameOver)
+        return;
 
-    // Draw Body
+    people_position += people_speed;
+    if (people_position > 2.0f)
+    {
+        if (abs(x - people_lane) < 0.5f)
+        {
+            people_position = -40.0f;
+
+            people_lane = LANES[rand() % TOTAL_LANES];
+        }
+        else if (people_position > 6.0f)
+        {
+            cout << "Ai pierdut!\n";
+            isGameOver = true;
+        }
+    }
+}
+
+void drawPerson()
+{
+    glPushMatrix();
+    glColor3f(0.435, 0.31, 0.114);
     glTranslatef(0.0f, 0.75f, 0.0f);
+    glScalef(0.7f, 1.0f, 0.7f);
     glutSolidSphere(0.75f, 20, 20);
+    glPopMatrix();
 
     // Draw Head
-    glTranslatef(0.0f, 1.0f, 0.0f);
+    glPushMatrix();
+    glTranslatef(0.0f, 1.75f, 0.0f);
     glutSolidSphere(0.25f, 20, 20);
 
     // Draw Eyes
     glPushMatrix();
-    glColor3f(0.0f, 0.0f, 0.0f);
+    glColor3f(0.0f, 0.0f, 1.0f); // Set color to blue for eyes
     glTranslatef(0.05f, 0.10f, 0.18f);
     glutSolidSphere(0.05f, 10, 10);
     glTranslatef(-0.1f, 0.0f, 0.0f);
@@ -74,8 +102,25 @@ void drawSnowMan()
     glPopMatrix();
 
     // Draw Nose
-    glColor3f(1.0f, 0.5f, 0.5f);
+    glColor3f(1.0f, 0.5f, 0.5f); // Set color to a light shade of red for nose
     glutSolidCone(0.08f, 0.5f, 10, 2);
+
+    glPopMatrix();
+
+    // Draw Arms/Hands
+    glPushMatrix();
+    glColor3f(0.435, 0.31, 0.114);       // Set color to match the body color
+    glTranslatef(-0.75f, 0.25f, 0.0f);   // Position the first hand
+    glRotatef(-45.0f, 0.0f, 0.0f, 1.0f); // Rotate the hand
+    glScalef(0.2f, 0.6f, 0.2f);          // Scale the hand
+    glutSolidCube(1.0f);                 // Draw the first hand
+
+    // glTranslatef(3.75f, 0.0f, 0.0f);    // Position the second hand
+    // glRotatef(90.0f, 0.0f, 1.0f, 0.0f); // Rotate the hand
+    // glScalef(0.2f, 0.6f, 0.2f);         // Scale the hand
+    // glutSolidCube(1.0f);                // Draw the second hand
+
+    glPopMatrix();
 }
 
 void renderScene(void)
@@ -86,9 +131,9 @@ void renderScene(void)
     // Reset transformations
     glLoadIdentity();
     // Set the camera
-    gluLookAt(x, 1.0f, z,
-              x + lx, 1.0f, z + lz,
-              0.0f, 1.0f, 0.0f);
+    gluLookAt(x, 1.5f, z,
+              x + lx, 1.5f, z + lz,
+              0.0f, 1.5f, 0.0f);
 
     if (currentTime == 0)
     {
@@ -98,6 +143,25 @@ void renderScene(void)
     {
         glClearColor(0.0f, 0.05f, 0.29f, 0.1f);
     }
+    // Enable lighting
+    glEnable(GL_LIGHTING);
+    glEnable(GL_COLOR_MATERIAL);
+
+    // Set light properties
+    GLfloat light_position[] = {10.0f, 5.0f, 1.0f, 1.0f}; // Light position
+    GLfloat light_color[] = {1.0f, 1.0f, 1.0f, 1.0f};     // Light color
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position); // Set light position
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color);     // Set light color
+    glEnable(GL_LIGHT0);
+
+    // Add light source sphere
+    glPushMatrix();
+    glTranslatef(light_position[0], light_position[1], light_position[2]);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glutSolidSphere(0.1f, 10, 10);
+    glPopMatrix();
+    // Enable light source
 
     // Draw ground
     glColor3f(0.5f, 0.5f, 0.5f);
@@ -155,14 +219,17 @@ void renderScene(void)
     }
 
     glEnd();
-
     // Disable line stippling
     glDisable(GL_LINE_STIPPLE);
 
-    // drawSnowMan();
-    // Movement politist
+    glPushMatrix();
+    glTranslatef(people_lane, 0.0f, people_position);
+    drawPerson();
+    glPopMatrix();
 
+    /////////////////////
     // Movement politist
+    /////////////////////
     if (directie == STANGA)
     {
 
@@ -188,7 +255,7 @@ void renderScene(void)
             x += police_speed;
         }
     }
-
+    game_logic();
     glutPostRedisplay();
     glutSwapBuffers();
     glFlush();
@@ -199,6 +266,12 @@ void processNormalKeys(unsigned char key, int x, int y)
     float fraction = 0.1f;
     switch (key)
     {
+    case 'r':
+        isGameOver = false;
+        people_position = -40.0f;
+        people_lane = LANES[rand() % TOTAL_LANES];
+        break;
+
     case 'l':
         angle -= 0.01f;
         lx = sin(angle);
@@ -219,6 +292,9 @@ void processNormalKeys(unsigned char key, int x, int y)
 
 void moveRight()
 {
+    if (isGameOver)
+        return;
+
     directie = DREAPTA;
     current_lane = min(current_lane + 1, TOTAL_LANES - 1);
 
@@ -227,6 +303,9 @@ void moveRight()
 
 void moveLeft()
 {
+    if (isGameOver)
+        return;
+
     directie = STANGA;
     current_lane = max(current_lane - 1, 0);
 
@@ -238,12 +317,12 @@ void processSpecialKeys(int key, int xx, int yy)
     switch (key)
     {
     case GLUT_KEY_UP:
-        angle -= 0.01f;
+        angle -= 0.05f;
         lx = sin(angle);
         lz = -cos(angle);
         break;
     case GLUT_KEY_DOWN:
-        angle += 0.01f;
+        angle += 0.05f;
         lx = sin(angle);
         lz = -cos(angle);
         break;
