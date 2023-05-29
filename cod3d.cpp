@@ -26,11 +26,13 @@ enum direction
 direction directie = LOC; // directia deplasarii politistului, initial sta pe loc
 
 const float police_speed = 0.3f;
+const float people_start_position = -60.0f;
 float people_speed = 0.2f;
-float people_position = -40.0f;
+float people_position = -80.0f;
 float people_lane = LANES[rand() % TOTAL_LANES];
 
 bool isGameOver = false;
+bool isGamePaused = false;
 
 void changeSize(int w, int h)
 {
@@ -58,7 +60,7 @@ void changeSize(int w, int h)
 
 void game_logic()
 {
-    if (isGameOver)
+    if (isGameOver || isGamePaused)
         return;
 
     people_position += people_speed;
@@ -66,7 +68,7 @@ void game_logic()
     {
         if (abs(x - people_lane) < 0.5f)
         {
-            people_position = -40.0f;
+            people_position = people_start_position;
 
             people_lane = LANES[rand() % TOTAL_LANES];
         }
@@ -74,6 +76,35 @@ void game_logic()
         {
             cout << "Ai pierdut!\n";
             isGameOver = true;
+        }
+    }
+
+    /////////////////////
+    // Movement politist
+    /////////////////////
+    if (directie == STANGA)
+    {
+
+        if (x - police_speed < (current_lane - 1) * 5.0f)
+        {
+            directie = LOC;
+            x = (current_lane - 1) * 5.0f;
+        }
+        else
+        {
+            x -= police_speed;
+        }
+    }
+    else if (directie == DREAPTA)
+    {
+        if (x + police_speed > (current_lane - 1) * 5.0f)
+        {
+            directie = LOC;
+            x = (current_lane - 1) * 5.0f;
+        }
+        else
+        {
+            x += police_speed;
         }
     }
 }
@@ -123,18 +154,8 @@ void drawPerson()
     glPopMatrix();
 }
 
-void renderScene(void)
+void drawScene()
 {
-    // Clear Color and Depth Buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Reset transformations
-    glLoadIdentity();
-    // Set the camera
-    gluLookAt(x, 1.5f, z,
-              x + lx, 1.5f, z + lz,
-              0.0f, 1.5f, 0.0f);
-
     if (currentTime == 0)
     {
         glClearColor(0.52f, 0.87f, 0.92f, 0.0f);
@@ -143,26 +164,6 @@ void renderScene(void)
     {
         glClearColor(0.0f, 0.05f, 0.29f, 0.1f);
     }
-    // Enable lighting
-    glEnable(GL_LIGHTING);
-    glEnable(GL_COLOR_MATERIAL);
-
-    // Set light properties
-    GLfloat light_position[] = {10.0f, 5.0f, 1.0f, 1.0f}; // Light position
-    GLfloat light_color[] = {1.0f, 1.0f, 1.0f, 1.0f};     // Light color
-
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position); // Set light position
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color);     // Set light color
-    glEnable(GL_LIGHT0);
-
-    // Add light source sphere
-    glPushMatrix();
-    glTranslatef(light_position[0], light_position[1], light_position[2]);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glutSolidSphere(0.1f, 10, 10);
-    glPopMatrix();
-    // Enable light source
-
     // Draw ground
     glColor3f(0.5f, 0.5f, 0.5f);
     glBegin(GL_QUADS);
@@ -189,6 +190,8 @@ void renderScene(void)
     glVertex3f(7.5f, 0.015f, -100.0f);
     glVertex3f(7.5f, 0.015f, 100.0f);
     glEnd();
+
+    glDisable(GL_LIGHTING);
 
     // Enable line stippling
     glEnable(GL_LINE_STIPPLE);
@@ -221,44 +224,102 @@ void renderScene(void)
     glEnd();
     // Disable line stippling
     glDisable(GL_LINE_STIPPLE);
+    glEnable(GL_LIGHTING);
+}
 
+void renderScene(void)
+{
+    // Clear Color and Depth Buffers
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Reset transformations
+    glLoadIdentity();
+    // Set the camera
+    gluLookAt(x, 1.5f, z,
+              x + lx, 1.5f, z + lz,
+              0.0f, 1.5f, 0.0f);
+
+    // Enable lighting
+    glEnable(GL_LIGHTING);
+    glEnable(GL_COLOR_MATERIAL);
+
+    // Set light properties
+    GLfloat light_position[] = {15.0f, 5.0f, 5.0f, 1.0f}; // Light position
+    GLfloat light_color[] = {0.3f, 0.3f, 0.3f, 0.3f};     // Light color
+    if (currentTime == 0)
+    {
+        light_color[0] = 1.0f;
+        light_color[1] = 1.0f;
+        light_color[2] = 1.0f;
+        light_color[3] = 1.0f;
+
+        light_position[0] = 15.0f;
+        light_position[1] = 5.0f;
+        light_position[2] = 5.0f;
+        light_position[3] = 1.0f;
+    }
+    else if (currentTime == 1)
+    {
+        light_color[0] = 0.3f;
+        light_color[1] = 0.3f;
+        light_color[2] = 0.3f;
+        light_color[3] = 0.3f;
+
+        light_position[0] = -10.0f;
+        light_position[1] = 5.0f;
+        light_position[2] = 5.0f;
+        light_position[3] = 1.0f;
+    }
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position); // Set light position
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color);     // Set light color
+    glEnable(GL_LIGHT0);
+
+    // Add light source sphere
+    glPushMatrix();
+    glTranslatef(light_position[0], light_position[1], light_position[2]);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glutSolidSphere(0.1f, 10, 10);
+    glPopMatrix();
+
+    // Draw scene
+    drawScene();
+
+    // Draw people
     glPushMatrix();
     glTranslatef(people_lane, 0.0f, people_position);
     drawPerson();
     glPopMatrix();
 
-    /////////////////////
-    // Movement politist
-    /////////////////////
-    if (directie == STANGA)
-    {
-
-        if (x - police_speed < (current_lane - 1) * 5.0f)
-        {
-            directie = LOC;
-            x = (current_lane - 1) * 5.0f;
-        }
-        else
-        {
-            x -= police_speed;
-        }
-    }
-    else if (directie == DREAPTA)
-    {
-        if (x + police_speed > (current_lane - 1) * 5.0f)
-        {
-            directie = LOC;
-            x = (current_lane - 1) * 5.0f;
-        }
-        else
-        {
-            x += police_speed;
-        }
-    }
     game_logic();
+
     glutPostRedisplay();
     glutSwapBuffers();
     glFlush();
+}
+
+void initializeOpenGL()
+{
+    // Alte inițializări OpenGL...
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LINE_SMOOTH);
+
+    // Activează efectul de ceață
+    glEnable(GL_FOG);
+
+    const float fogZStart = -90.0f;
+    const float fogZEnd = 0.0f;
+    // Setează parametrii ceții
+    GLfloat fogColor[] = {0.3f, 0.3f, 0.3f, 1.0f}; // Culoarea ceții (în acest caz, un gri deschis)
+    glFogfv(GL_FOG_COLOR, fogColor);               // Setează culoarea ceții
+
+    // Setează parametrii pentru ceața pe axa Oz
+    glFogf(GL_FOG_MODE, GL_EXP2);    // Modul de calcul al ceții (în acest caz, liniar)
+    glFogf(GL_FOG_START, fogZStart); // Poziția de început a ceții pe axa Oz
+    glFogf(GL_FOG_END, fogZEnd);     // Poziția de sfârșit a ceții pe axa Oz
+
+    glFogf(GL_FOG_DENSITY, 0.03f);  // Densitatea ceții (poți ajusta acest parametru pentru a obține efectul dorit)
+    glHint(GL_FOG_HINT, GL_NICEST); // Sugestie pentru calculul ceții (în acest caz, sugestia de cea mai bună calitate)
 }
 
 void processNormalKeys(unsigned char key, int x, int y)
@@ -268,10 +329,15 @@ void processNormalKeys(unsigned char key, int x, int y)
     {
     case 'r':
         isGameOver = false;
-        people_position = -40.0f;
+        people_position = people_start_position;
         people_lane = LANES[rand() % TOTAL_LANES];
         break;
-
+    case 'n':
+        currentTime = (currentTime + 1) % 2;
+        break;
+    case 'c':
+        glDisable(GL_FOG);
+        break;
     case 'l':
         angle -= 0.01f;
         lx = sin(angle);
@@ -286,6 +352,9 @@ void processNormalKeys(unsigned char key, int x, int y)
         break;
     case 27: // escape key
         exit(0);
+        break;
+    case 32: // space key
+        isGamePaused = !isGamePaused;
         break;
     }
 }
@@ -366,8 +435,7 @@ int main(int argc, char **argv)
     glutSpecialFunc(processSpecialKeys);
 
     // OpenGL init
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LINE_SMOOTH);
+    initializeOpenGL();
 
     // Menu
     int menuMain, menuTimeOfDay;
