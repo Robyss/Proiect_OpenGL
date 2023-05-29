@@ -2,6 +2,10 @@
 #include <iostream>
 #include <GL/freeglut.h>
 #include <math.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 using namespace std;
 // angle of rotation for the camera direction
 float angle = 0.0;
@@ -253,9 +257,11 @@ void drawScene()
     if (currentTime == 0)
     {
         glClearColor(0.52f, 0.87f, 0.92f, 0.0f);
+        glDisable(GL_FOG);
     }
     else if (currentTime == 1)
     {
+        glEnable(GL_FOG);
         glClearColor(0.0f, 0.05f, 0.29f, 0.1f);
     }
     // Draw ground
@@ -319,6 +325,13 @@ void drawScene()
     // Disable line stippling
     glDisable(GL_LINE_STIPPLE);
     glEnable(GL_LIGHTING);
+
+    // Create building
+    glPushMatrix();
+    glTranslatef(-20.0f, 10.0f, -50.0f);
+    glScalef(0.5f, 1.0f, 0.5f);
+    glutSolidCube(20.0f);
+    glPopMatrix();
 }
 
 void renderScene(void)
@@ -543,7 +556,6 @@ int main(int argc, char **argv)
     glutAddSubMenu("Zi/Noapte ", menuTimeOfDay);
     glutAddMenuEntry("Iesi ", 0);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
-
     // enter GLUT event processing cycle
     glutMainLoop();
 
