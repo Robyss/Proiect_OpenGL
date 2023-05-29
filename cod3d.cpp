@@ -111,40 +111,134 @@ void game_logic()
 
 void drawPerson()
 {
+
     glPushMatrix();
+    // left leg
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glTranslatef(-0.2f, 0.1f, 0.0f);
+    glutSolidCube(0.25f);
     glColor3f(0.435, 0.31, 0.114);
-    glTranslatef(0.0f, 0.75f, 0.0f);
-    glScalef(0.7f, 1.0f, 0.7f);
-    glutSolidSphere(0.75f, 20, 20);
-    glPopMatrix();
-
-    // Draw Head
-    glPushMatrix();
-    glTranslatef(0.0f, 1.75f, 0.0f);
-    glutSolidSphere(0.25f, 20, 20);
-
-    // Draw Eyes
-    glPushMatrix();
-    glColor3f(0.0f, 0.0f, 1.0f); // Set color to blue for eyes
-    glTranslatef(0.05f, 0.10f, 0.18f);
-    glutSolidSphere(0.05f, 10, 10);
-    glTranslatef(-0.1f, 0.0f, 0.0f);
-    glutSolidSphere(0.05f, 10, 10);
-    glPopMatrix();
-
-    // Draw Nose
-    glColor3f(1.0f, 0.5f, 0.5f); // Set color to a light shade of red for nose
-    glutSolidCone(0.08f, 0.5f, 10, 2);
-
+    glTranslatef(0.0f, 0.15f, 0.0f);
+    glutSolidCube(0.26f);
+    glColor3f(0.0, 0.0, 0.2);
+    glTranslatef(0.0f, 0.25f, 0.0f);
+    glutSolidCube(0.27f);
+    // right leg
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glTranslatef(0.4f, -0.4f, 0.0f);
+    glutSolidCube(0.25f);
+    glColor3f(0.435, 0.31, 0.114);
+    glTranslatef(0.0f, 0.15f, 0.0f);
+    glutSolidCube(0.26f);
+    glColor3f(0.0, 0.0, 0.2);
+    glTranslatef(0.0f, 0.25f, 0.0f);
+    glutSolidCube(0.27f);
+    // body
+    glColor3f(0.5f, 0.5f, 0.5f);
+    glTranslatef(-0.4f, 0.25f, 0.0f);
+    glutSolidCube(0.3f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.3f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.3f);
+    glTranslatef(-0.4f, 0.25f, 0.0f);
+    glutSolidCube(0.3f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.3f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.3f);
+    glTranslatef(-0.4f, 0.25f, 0.0f);
+    glutSolidCube(0.3f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.3f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.3f);
+    // right arm
+    glTranslatef(0.25f, 0.0f, 0.0f);
+    glutSolidCube(0.26f);
+    glColor3f(0.435, 0.31, 0.114);
+    glTranslatef(0.0f, -0.2f, 0.0f);
+    glutSolidCube(0.25f);
+    glTranslatef(0.0f, -0.2f, 0.0f);
+    glutSolidCube(0.25f);
+    // left arm
+    glTranslatef(-0.9f, 0.0f, 0.0f);
+    glutSolidCube(0.25f);
+    glTranslatef(0.0f, 0.2f, 0.0f);
+    glutSolidCube(0.25f);
+    glColor3f(0.5f, 0.5f, 0.5f);
+    glTranslatef(0.0f, 0.2f, 0.0f);
+    glutSolidCube(0.26f);
+    // neck
+    glColor3f(0.435, 0.31, 0.114);
+    glTranslatef(0.45f, 0.1f, 0.0f);
+    glutSolidCube(0.29f);
+    // head
+    glColor3f(0.435, 0.31, 0.114);
+    glTranslatef(0.0f, 0.4f, 0.0f);
+    glutSolidCube(0.6f);
+    // right eye
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glTranslatef(0.15f, 0.0f, 0.26f);
+    glutSolidCube(0.1f);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glTranslatef(-0.02f, -0.02f, 0.04f);
+    glutSolidCube(0.03f);
+    // right eyebrow
+    glBegin(GL_LINES);
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(-0.05f, 0.02f, 0.2f);
+    glVertex3f(0.05f, 0.08f, 0.2f);
+    glEnd();
+    // left eye
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glTranslatef(-0.28f, 0.02f, -0.04f);
+    glutSolidCube(0.1f);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glTranslatef(-0.02f, -0.02f, 0.04f);
+    glutSolidCube(0.03f);
+    // left eyebrow
+    glBegin(GL_LINES);
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(0.09f, 0.02f, 0.2f);
+    glVertex3f(0.01f, 0.08f, 0.2f);
+    glEnd();
+    // mouth
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glTranslatef(0.17f, -0.2f, 0.0f);
+    glutSolidCube(0.05f);
+    glTranslatef(0.05f, 0.0f, 0.0f);
+    glutSolidCube(0.05f);
+    glTranslatef(0.05f, 0.0f, 0.0f);
+    glutSolidCube(0.05f);
+    // hair
+    glTranslatef(-0.3f, 0.5f, -0.5f);
+    glutSolidCube(0.21f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.21f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.21f);
+    glTranslatef(-0.4f, 0.0f, 0.2f);
+    glutSolidCube(0.21f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.21f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.21f);
+    glTranslatef(-0.4f, 0.0f, 0.2f);
+    glutSolidCube(0.21f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.21f);
+    glTranslatef(0.2f, 0.0f, 0.0f);
+    glutSolidCube(0.21f);
     glPopMatrix();
 
     // Draw Arms/Hands
-    glPushMatrix();
-    glColor3f(0.435, 0.31, 0.114);       // Set color to match the body color
-    glTranslatef(-0.75f, 0.25f, 0.0f);   // Position the first hand
-    glRotatef(-45.0f, 0.0f, 0.0f, 1.0f); // Rotate the hand
-    glScalef(0.2f, 0.6f, 0.2f);          // Scale the hand
-    glutSolidCube(1.0f);                 // Draw the first hand
+    // glPushMatrix();
+    // glColor3f(0.435, 0.31, 0.114);       // Set color to match the body color
+    // glTranslatef(-0.75f, 0.25f, 0.0f);   // Position the first hand
+    // glRotatef(-45.0f, 0.0f, 0.0f, 1.0f); // Rotate the hand
+    // glScalef(0.2f, 0.6f, 0.2f);          // Scale the hand
+    // glutSolidCube(1.0f);                 // Draw the first hand
 
     // glTranslatef(3.75f, 0.0f, 0.0f);    // Position the second hand
     // glRotatef(90.0f, 0.0f, 1.0f, 0.0f); // Rotate the hand
