@@ -438,9 +438,6 @@ void processNormalKeys(unsigned char key, int x, int y)
     case 'n':
         currentTime = (currentTime + 1) % 2;
         break;
-    case 'c':
-        glDisable(GL_FOG);
-        break;
     case 'l':
         angle -= 0.01f;
         lx = sin(angle);
