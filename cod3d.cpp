@@ -27,12 +27,27 @@ direction directie = LOC; // directia deplasarii politistului, initial sta pe lo
 
 const float police_speed = 0.3f;
 const float people_start_position = -60.0f;
-float people_speed = 0.2f;
+float people_speed = 0.4f;
 float people_position = -80.0f;
 float people_lane = LANES[rand() % TOTAL_LANES];
 
 bool isGameOver = false;
 bool isGamePaused = false;
+
+GLdouble theta = 0.0, rotate_speed = 4.0;
+GLdouble reverse_treshold = 45.0;
+bool invers = false;
+
+void mutarep(void)
+{
+    theta = theta + rotate_speed;
+    glutPostRedisplay();
+}
+void mutarem(void)
+{
+    theta = theta - rotate_speed;
+    glutPostRedisplay();
+}
 
 void changeSize(int w, int h)
 {
@@ -61,7 +76,10 @@ void changeSize(int w, int h)
 void game_logic()
 {
     if (isGameOver || isGamePaused)
+    {
+        glutIdleFunc(NULL);
         return;
+    }
 
     people_position += people_speed;
     if (people_position > 2.0f)
@@ -78,6 +96,11 @@ void game_logic()
             isGameOver = true;
         }
     }
+    if (theta > reverse_treshold)
+        invers = true;
+    if (theta < -reverse_treshold)
+        invers = false;
+    glutIdleFunc((invers) ? mutarem : mutarep);
 
     /////////////////////
     // Movement politist
@@ -114,28 +137,34 @@ void drawPerson()
 
     glPushMatrix();
     // left leg
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glTranslatef(-0.2f, 0.1f, 0.0f);
-    glutSolidCube(0.25f);
-    glColor3f(0.435, 0.31, 0.114);
-    glTranslatef(0.0f, 0.15f, 0.0f);
-    glutSolidCube(0.26f);
     glColor3f(0.0, 0.0, 0.2);
-    glTranslatef(0.0f, 0.25f, 0.0f);
+    glTranslatef(-0.2f, 0.5f, 0.0f);
+    glRotated(-theta, 1.0, 0.0, 0.0);
     glutSolidCube(0.27f);
+    glColor3f(0.435, 0.31, 0.114);
+    glTranslatef(0.0f, -0.25f, 0.0f);
+    glutSolidCube(0.26f);
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glTranslatef(0.0f, -0.15f, 0.0f);
+    glutSolidCube(0.25f);
+    glPopMatrix();
     // right leg
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glTranslatef(0.4f, -0.4f, 0.0f);
-    glutSolidCube(0.25f);
-    glColor3f(0.435, 0.31, 0.114);
-    glTranslatef(0.0f, 0.15f, 0.0f);
-    glutSolidCube(0.26f);
+    glPushMatrix();
     glColor3f(0.0, 0.0, 0.2);
-    glTranslatef(0.0f, 0.25f, 0.0f);
+    glTranslatef(0.2f, 0.5f, 0.0f);
+    glRotated(theta, 1.0, 0.0, 0.0);
     glutSolidCube(0.27f);
+    glColor3f(0.435, 0.31, 0.114);
+    glTranslatef(0.0f, -0.25f, 0.0f);
+    glutSolidCube(0.26f);
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glTranslatef(0.0f, -0.15f, 0.0f);
+    glutSolidCube(0.25f);
+    glPopMatrix();
     // body
+    glPushMatrix();
     glColor3f(0.5f, 0.5f, 0.5f);
-    glTranslatef(-0.4f, 0.25f, 0.0f);
+    glTranslatef(-0.2f, 0.75f, 0.0f);
     glutSolidCube(0.3f);
     glTranslatef(0.2f, 0.0f, 0.0f);
     glutSolidCube(0.3f);
@@ -154,6 +183,7 @@ void drawPerson()
     glTranslatef(0.2f, 0.0f, 0.0f);
     glutSolidCube(0.3f);
     // right arm
+    glRotated(-theta, 1.0, 0.0, 0.0);
     glTranslatef(0.25f, 0.0f, 0.0f);
     glutSolidCube(0.26f);
     glColor3f(0.435, 0.31, 0.114);
@@ -161,17 +191,23 @@ void drawPerson()
     glutSolidCube(0.25f);
     glTranslatef(0.0f, -0.2f, 0.0f);
     glutSolidCube(0.25f);
+    glPopMatrix();
     // left arm
-    glTranslatef(-0.9f, 0.0f, 0.0f);
-    glutSolidCube(0.25f);
-    glTranslatef(0.0f, 0.2f, 0.0f);
-    glutSolidCube(0.25f);
+    glPushMatrix();
     glColor3f(0.5f, 0.5f, 0.5f);
-    glTranslatef(0.0f, 0.2f, 0.0f);
+    glTranslatef(-0.47f, 1.25f, 0.0f);
+    glRotated(theta, 0.1, 0.0, 0.0);
     glutSolidCube(0.26f);
-    // neck
     glColor3f(0.435, 0.31, 0.114);
-    glTranslatef(0.45f, 0.1f, 0.0f);
+    glTranslatef(0.0f, -0.2f, 0.0f);
+    glutSolidCube(0.25f);
+    glTranslatef(0.0f, -0.2f, 0.0f);
+    glutSolidCube(0.25f);
+    glPopMatrix();
+    // neck
+    glPushMatrix();
+    glColor3f(0.435, 0.31, 0.114);
+    glTranslatef(0.0f, 1.35f, 0.0f);
     glutSolidCube(0.29f);
     // head
     glColor3f(0.435, 0.31, 0.114);
@@ -187,8 +223,8 @@ void drawPerson()
     // right eyebrow
     glBegin(GL_LINES);
     glColor3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(-0.05f, 0.02f, 0.2f);
-    glVertex3f(0.05f, 0.08f, 0.2f);
+    glVertex3f(-0.05f, 0.02f, 0.01f);
+    glVertex3f(0.05f, 0.08f, 0.01f);
     glEnd();
     // left eye
     glColor3f(0.0f, 0.0f, 0.0f);
@@ -200,8 +236,8 @@ void drawPerson()
     // left eyebrow
     glBegin(GL_LINES);
     glColor3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.09f, 0.02f, 0.2f);
-    glVertex3f(0.01f, 0.08f, 0.2f);
+    glVertex3f(0.09f, 0.02f, 0.01f);
+    glVertex3f(0.0f, 0.08f, 0.01f);
     glEnd();
     // mouth
     glColor3f(0.0f, 0.0f, 0.0f);
@@ -247,7 +283,6 @@ void drawPerson()
 
     glPopMatrix();
 }
-
 void drawScene()
 {
     if (currentTime == 0)
