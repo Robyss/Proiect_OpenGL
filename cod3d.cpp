@@ -2,10 +2,6 @@
 #include <iostream>
 #include <GL/freeglut.h>
 #include <math.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 using namespace std;
 // angle of rotation for the camera direction
 float angle = 0.0;
