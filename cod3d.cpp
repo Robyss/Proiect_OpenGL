@@ -15,7 +15,8 @@ const int TOTAL_LANES = 3;
 const float LANES[] = {-5.0f, 0.0f, 5.0f};
 int current_lane = 1;
 
-int currentTime = 0;
+// 0 - day, 1 - night
+int current_time = 0;
 
 enum direction
 {
@@ -26,7 +27,7 @@ enum direction
 direction directie = LOC; // directia deplasarii politistului, initial sta pe loc
 
 const float police_speed = 0.3f;
-const float people_start_position = -60.0f;
+const float people_start_position = -80.0f;
 float people_speed = 0.4f;
 float people_position = -80.0f;
 float people_lane = LANES[rand() % TOTAL_LANES];
@@ -37,6 +38,8 @@ bool isGamePaused = false;
 GLdouble theta = 0.0, rotate_speed = 4.0;
 GLdouble reverse_treshold = 45.0;
 bool invers = false;
+
+int score = 0, prag_score = 5, increase_score = 5;
 
 void mutarep(void)
 {
@@ -87,8 +90,24 @@ void game_logic()
         if (abs(x - people_lane) < 0.5f)
         {
             people_position = people_start_position;
-
             people_lane = LANES[rand() % TOTAL_LANES];
+            score++;
+            cout << "Scor: " << score * 100 << '\n';
+
+            if (score >= prag_score && prag_score < 100)
+            {
+                people_speed += 0.1f;
+                rotate_speed += 1.0f;
+                prag_score += increase_score;
+                // increase_score += 5;
+                cout << "Speed raised!\n";
+
+                if (prag_score % 30 == 0)
+                {
+                    current_time = (current_time + 1) % 2;
+                    cout << (current_time == 0 ? "Daytime\n" : "Nighttime\n");
+                }
+            }
         }
         else if (people_position > 6.0f)
         {
@@ -285,12 +304,14 @@ void drawPerson()
 }
 void drawScene()
 {
-    if (currentTime == 0)
+    // 0 - day,
+    if (current_time == 0)
     {
         glClearColor(0.52f, 0.87f, 0.92f, 0.0f);
         glDisable(GL_FOG);
     }
-    else if (currentTime == 1)
+    // 0 - day,
+    else if (current_time == 1)
     {
         glEnable(GL_FOG);
         glClearColor(0.0f, 0.05f, 0.29f, 0.1f);
@@ -384,7 +405,7 @@ void renderScene(void)
     // Set light properties
     GLfloat light_position[] = {15.0f, 5.0f, 5.0f, 1.0f}; // Light position
     GLfloat light_color[] = {0.3f, 0.3f, 0.3f, 0.3f};     // Light color
-    if (currentTime == 0)
+    if (current_time == 0)
     {
         light_color[0] = 1.0f;
         light_color[1] = 1.0f;
@@ -396,7 +417,8 @@ void renderScene(void)
         light_position[2] = 5.0f;
         light_position[3] = 1.0f;
     }
-    else if (currentTime == 1)
+    // 0 - day,
+    else if (current_time == 1)
     {
         light_color[0] = 0.3f;
         light_color[1] = 0.3f;
@@ -465,20 +487,26 @@ void processNormalKeys(unsigned char key, int x, int y)
     float fraction = 0.1f;
     switch (key)
     {
-    case 'r':
+    case 'c': // continue
         isGameOver = false;
         people_position = people_start_position;
         people_lane = LANES[rand() % TOTAL_LANES];
         break;
+    case 'r': // restart
+        isGameOver = false;
+        people_position = people_start_position;
+        people_lane = LANES[rand() % TOTAL_LANES];
+        score = 0;
+        people_speed = 0.4f;
+        rotate_speed = 4.0f;
+        prag_score = 5;
+        increase_score = 5;
+        current_time = 0;
+        break;
     case 'n':
-        currentTime = (currentTime + 1) % 2;
+        // 0 - day,
+        current_time = (current_time + 1) % 2;
         break;
-    case 'l':
-        angle -= 0.01f;
-        lx = sin(angle);
-        lz = -cos(angle);
-        break;
-
     case 'a': // stanga
         x -= police_speed;
         break;
@@ -490,6 +518,7 @@ void processNormalKeys(unsigned char key, int x, int y)
         break;
     case 32: // space key
         isGamePaused = !isGamePaused;
+        cout << (isGamePaused ? "Paused\n" : "Resumed\n");
         break;
     }
 }
@@ -537,8 +566,7 @@ void processSpecialKeys(int key, int xx, int yy)
         moveRight();
         break;
     }
-    cout << "X: " << x << "  Z: " << z << "  Angle: " << angle << '\n';
-    cout << current_lane << '\n';
+    // cout << "X: " << x << "  Z: " << z << "  Angle: " << angle << "Lane: " << current_lane << '\n';
 }
 
 void callback_Main(int key)
@@ -550,7 +578,8 @@ void callback_Main(int key)
 }
 void callback_Time(int key)
 {
-    currentTime = key;
+    // 0 - day,
+    current_time = key;
 }
 
 int main(int argc, char **argv)
@@ -560,7 +589,7 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowPosition(100, 100);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Scena 3D cu oameni de zapada");
+    glutCreateWindow("Prinde infractorii - mini game 3D");
 
     // register callbacks
     glutDisplayFunc(renderScene);
